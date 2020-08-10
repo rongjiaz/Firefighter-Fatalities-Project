@@ -1,0 +1,100 @@
+---
+title: "Data Science 101 - Project 1"
+author: "Benfeard Williams, Isabel Decolin, Renee Zhang, Raul Miranda"
+date: "8/6/2020"
+output: 
+    html_document:
+        toc: yes
+        toc_depth: '2'
+geometry: right=2.5in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+The data set we chose is Firefighter Fatalities in the United States from Kaggle (https://www.kaggle.com/fema/firefighter-fatalities). This data comes from the U.S. Fire Administration which tracks and collects information on the causes of on-duty firefighter fatalities. Data are reported by individual fire departments, chief fire officers, fire service organizations, the National Fire Protection Association, and the National Fallen Firefighters Foundation. The data set include information on the name, age, rank, date and cause of death, and nine other variables for all firefighters killed between 2000 and 2015.
+
+## Research Questions
+
+- What is the age distribution of dead firefighters?
+- What are the most common causes of death?
+- Do career firefighters die at a later age than volunteers, in average?
+- Do more experienced firefighters (higher rank) die at a later age than volunteers, in average?
+- Is the cause of death correlated with age?
+- Do most deaths occur at on-scene fires?
+
+# Firefighter Fatalities
+
+```{r firefighters, echo=TRUE}
+#Read the data
+firefighters <- read.csv("database.csv")
+
+#Structure of the data
+str(firefighters)
+# which is a data frame of 2005 observations and 14 character variables
+
+#First row
+head(firefighters, 1)
+
+#Last row
+tail(firefighters, 1)
+```
+
+## Data Description
+
+The data contains information about the firefighter's names, age, rank, classification, the date of their fatal incident, the date of their death, the cause of their death, the nature of their death, whether or not they were on duty, on scene , what type of activity they were doing, if they were handling an emergency, and the property type for the incident.
+
+Potential improvements to the dataset include adding information on gender and location of incident.
+
+# Data Clean Up and Preparation
+
+```{r dplyr, include=FALSE}
+library("dplyr")
+library("stringr")
+```
+
+## Abnormal Entry
+
+First we noticed an abnormal data. Row 762 was input incorrectly. This also created an additional column X, that does not contain any useful information.
+
+```{r}
+firefighters[762, ]
+firefighters <- filter(firefighters, firefighters$X != "Street/Road") %>% select(-X)
+```
+```{r}
+str(firefighters) # leaving 2004 records and 13 variables
+```
+
+
+## New Subsets
+
+In order to remove bias from the analysis introduced by prominent events on specific dates, we decided to separate the September 11, 2001, firefighters from the rest. We also decided to separate firefighters who handle the Wildlands, who are exposed to different risk factors compared to city firefighters. 
+
+```{r preparation, echo=TRUE}
+fire_11 <- filter(firefighters, Date.of.Death == "Sep 11, 2001") 
+fire_wild <- filter(firefighters, str_detect(Classification, "^Wildland"))
+fire_main <- filter(firefighters, Date.of.Death != "Sep 11, 2001" & !str_detect(Classification, "^Wildland"))
+```
+
+## Convert Strings to Dates
+
+In order to use the Date of Incident and Date of Death columns as dates in R, we are converting them from strings using the as.Date() function. This will allow us to look at the different between the columns and calculate the number of days after an incident that death occurs
+
+```{r}
+fire_main <- mutate(fire_main, Days.After.Incident = as.Date(Date.of.Death, "%b %d, %Y") - as.Date(Date.of.Incident, "%b %d, %Y")) 
+head(fire_main, 1)
+```
+
+## Is Classification a risk factor for early age fatalities?
+
+Remove NA rows in classification columns and age columns. The question is about career people vs volunteers.
+
+```{r}
+age_class <- select(fire_main, Age, Classification) %>% na.exclude %>% filter(Classification == "Career" | Classification == "Volunteer") %>% arrange(Classification)
+
+group_by(age_class, Classification) %>% summarize(mean_age = mean(as.numeric(Age), na.rm = TRUE), sd_age = sd(as.numeric(Age), na.rm = TRUE), total = n())
+```
+

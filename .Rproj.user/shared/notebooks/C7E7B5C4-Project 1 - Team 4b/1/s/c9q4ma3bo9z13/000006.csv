@@ -1,0 +1,2 @@
+"0","age_class <- select(fire_main, Age, Classification) %>% na.exclude %>% filter(Classification == ""Career"" | Classification == ""Volunteer"") %>% arrange(Classification)"
+"0",""

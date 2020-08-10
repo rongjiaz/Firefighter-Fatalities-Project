@@ -1,0 +1,97 @@
+---
+title: "Data Science 101 - Project 1"
+author: "Benfeard Williams, Isabel Decolin, Renee Zhang, Raul Miranda"
+date: "8/6/2020"
+output: 
+    html_document:
+        toc: yes
+        toc_depth: '2'
+geometry: right=2.5in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+The data set we chose is Firefighter Fatalities in the United States from Kaggle (https://www.kaggle.com/fema/firefighter-fatalities). This data comes from the U.S. Fire Administration which tracks and collects information on the causes of on-duty firefighter fatalities. Data is reported by individual fire departments, chief fire officers, fire service organizations, the National Fire Protection Association, and the National Fallen Firefighters Foundation. The data set includes information on the name, age, rank, and cause of death for all firefighters killed between 2000 and 2015.
+
+## Research Questions
+
+- Are more experienced firefighters (higher rank) more likely to experience fatalities on-duty?
+- Are older firefighters more like to experience fatalities on-duty?
+- Do the most deaths occur at on-scene fires?
+- Does age have a correlation with cause of death?
+- Do career firefighters experience more fatalities than volunteers?
+- What is the primary cause of death? What is the primary nature of death?
+- Where do most fatalities occur (property type)?
+- Which year had the most deaths?
+
+# Firefighter Fatalities
+
+```{r firefighters, echo=TRUE}
+#Read the data
+firefighters <- read.csv("database.csv")
+
+#Structure of the data
+str(firefighters)
+
+#First row
+head(firefighters, 1)
+
+#Last row
+tail(firefighters, 1)
+```
+
+## Data Description
+
+The data contains information about the firefighter's names, age, rank, classification, the date of their fatal incident, the date of their death, the cause of their death, the nature of their death, whether or not they were on duty, what type of activity they were doing, if they were handling an emergency, and the property type for the incident.
+
+Improvements to the dataset include adding a column for gender and location of incident.
+
+# Data Clean Up and Preparation
+
+```{r dplyr, include=FALSE}
+library("dplyr")
+library("stringr")
+```
+
+## Abnormal Entry
+
+First we noticed an abnormal data. Row 762 was input incorrectly. This also created an additional column X, that does not contain any useful information.
+
+```{r}
+firefighters[762, ]
+firefighters <- filter(firefighters, firefighters$X != "Street/Road") %>% select(-X)
+```
+
+## New Subsets
+
+We decided to separate the September 11, 2001 firefighters from the rest to remove bias from our analysis. We also decided to separate firefighters who handle the Wildlands
+
+```{r preparation, echo=TRUE}
+fire_11 <- filter(firefighters, Date.of.Death == "Sep 11, 2001") 
+fire_wild <- filter(firefighters, str_detect(Classification, "^Wildland"))
+fire_main <- filter(firefighters, Date.of.Death != "Sep 11, 2001" & !str_detect(Classification, "^Wildland"))
+```
+
+## Convert Strings to Dates
+
+In order to use the Date of Incident and Date of Death columns as dates in R, we are converting them from strings using the as.Date() function. This will allow us to look at the different between the columns and calculate the number of days after an incident that death occurs
+
+```{r}
+fire_main <- mutate(fire_main, Days.After.Incident = as.Date(Date.of.Death, "%b %d, %Y") - as.Date(Date.of.Incident, "%b %d, %Y")) 
+head(fire_main, 1)
+```
+
+## Is Classification a risk factor for early age fatalities?
+
+Remove NA rows in classification columns and age columns. The question is about career people vs volunteers.
+
+```{r}
+age_class <- select(fire_main, Age, Classification) %>% na.exclude %>% filter(Classification == "Career" | Classification == "Volunteer") %>% arrange(Classification)
+
+group_by(fire_main, Classification) %>% summarize(mean_age = mean(as.numeric(Age), na.rm = TRUE), sd_age = sd(as.numeric(Age), na.rm = TRUE), total = n())
+```
+

@@ -1,0 +1,5 @@
+"0","age_class <- select(fire_main, Age, Classification) %>% na.exclude %>% filter(Classification == ""Career"" | Classification == ""Volunteer"") %>% arrange(Classification)"
+"0",""
+"0","group_by(age_class, Classification) %>% summarize(mean_age = mean(as.numeric(Age), na.rm = TRUE), sd_age = sd(as.numeric(Age), na.rm = TRUE), total = n())"
+"2","`summarise()` ungrouping output (override with `.groups` argument)
+"

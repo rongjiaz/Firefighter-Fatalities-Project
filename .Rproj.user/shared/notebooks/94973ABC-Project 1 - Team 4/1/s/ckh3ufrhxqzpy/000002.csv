@@ -1,0 +1,2 @@
+"0","fire_main <- mutate(fire_main, Days.After.Incident = as.Date(Date.of.Death, ""%b %d, %Y"") - as.Date(Date.of.Incident, ""%b %d, %Y"")) "
+"0","head(fire_main, 1)"

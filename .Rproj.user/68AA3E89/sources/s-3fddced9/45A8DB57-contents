@@ -1,0 +1,55 @@
+---
+author: Rongjia Zhang
+title: "Firefighter Fatalities"
+output: html_document
+---
+
+# Data Description
+Firefighter fatalities in the United States since 2000
+
+#Data Source
+Kaggle
+https://www.kaggle.com/fema/firefighter-fatalities/data?select=database.csv
+
+
+```{r firefighter, echo=TRUE}
+#Read the data
+firefighter <- read.csv("database.csv")
+
+#Structure the data
+str(firefighter)
+
+#First row of data
+head(firefighter, 1)
+
+#Last row of data
+tail(firefighter, 1)
+
+```
+
+
+```{r}
+install.packages("dplyr")
+library(dplyr)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

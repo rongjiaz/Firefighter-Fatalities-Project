@@ -1,0 +1,3 @@
+"0","fire_11 <- filter(firefighters, Date.of.Death == ""Sep 11, 2001"") "
+"0","fire_wild <- filter(firefighters, str_detect(Classification, ""^Wildland""))"
+"0","fire_main <- filter(firefighters, Date.of.Death != ""Sep 11, 2001"" & !str_detect(Classification, ""^Wildland""))"
